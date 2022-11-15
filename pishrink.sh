@@ -6,7 +6,7 @@ CURRENT_DIR="$(pwd)"
 SCRIPTNAME="${0##*/}"
 MYNAME="${SCRIPTNAME%.*}"
 LOGFILE="${CURRENT_DIR}/${SCRIPTNAME%.*}.log"
-REQUIRED_TOOLS="parted losetup tune2fs md5sum e2fsck resize2fs"
+REQUIRED_TOOLS="parted losetup tune2fs md5sum e2fsck resize2fs zerofree"
 ZIPTOOLS=("gzip xz")
 declare -A ZIP_PARALLEL_TOOL=( [gzip]="pigz" [xz]="xz" ) # parallel zip tool to use in parallel mode
 declare -A ZIP_PARALLEL_OPTIONS=( [gzip]="-f9" [xz]="-T0" ) # options for zip tools in parallel mode
@@ -427,6 +427,18 @@ if (( $rc )); then
 	error $LINENO "trunate failed with rc $rc"
 	exit 16
 fi
+
+#Zero out the freespace
+info "Zeroing free space"
+LOOP_DEV=$(losetup -f)
+losetup $LOOP_DEV -P $img
+zerofree ${LOOP_DEV}p2
+rc=$?
+if (( $rc )); then
+	error $LINENO "zerofree failed with rc $rc"
+	exit 20
+fi
+losetup -d $LOOP_DEV
 
 # handle compression
 if [[ -n $ziptool ]]; then
