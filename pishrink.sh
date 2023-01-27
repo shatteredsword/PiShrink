@@ -67,41 +67,41 @@ fi
 }
 
 function set_autoexpand() {
-    #Make pi expand rootfs on next boot
-    mountdir=$(mktemp -d)
-    partprobe "$loopback"
-    mount "$loopback" "$mountdir"
+		#Make pi expand rootfs on next boot
+		mountdir=$(mktemp -d)
+		partprobe "$loopback"
+		mount "$loopback" "$mountdir"
 
-    if [ ! -d "$mountdir/etc" ]; then
-        info "/etc not found, autoexpand will not be enabled"
-        umount "$mountdir"
-        return
-    fi
+		if [ ! -d "$mountdir/etc" ]; then
+				info "/etc not found, autoexpand will not be enabled"
+				umount "$mountdir"
+				return
+		fi
 
-    if [[ -f "$mountdir/etc/rc.local" ]] && [[ "$(md5sum "$mountdir/etc/rc.local" | cut -d ' ' -f 1)" != "1c579c7d5b4292fd948399b6ece39009" ]]; then
-      echo "Creating new /etc/rc.local"
-    if [ -f "$mountdir/etc/rc.local" ]; then
-        mv "$mountdir/etc/rc.local" "$mountdir/etc/rc.local.bak"
-    fi
+		if [[ -f "$mountdir/etc/rc.local" ]] && [[ "$(md5sum "$mountdir/etc/rc.local" | cut -d ' ' -f 1)" != "1c579c7d5b4292fd948399b6ece39009" ]]; then
+			echo "Creating new /etc/rc.local"
+		if [ -f "$mountdir/etc/rc.local" ]; then
+				mv "$mountdir/etc/rc.local" "$mountdir/etc/rc.local.bak"
+		fi
 
-    #####Do not touch the following lines#####
+		#####Do not touch the following lines#####
 cat <<\EOF1 > "$mountdir/etc/rc.local"
 #!/bin/bash
 do_expand_rootfs() {
-  ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
+	ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
 
-  PART_NUM=${ROOT_PART#mmcblk0p}
-  if [ "$PART_NUM" = "$ROOT_PART" ]; then
-    echo "$ROOT_PART is not an SD card. Don't know how to expand"
-    return 0
-  fi
+	PART_NUM=${ROOT_PART#mmcblk0p}
+	if [ "$PART_NUM" = "$ROOT_PART" ]; then
+		echo "$ROOT_PART is not an SD card. Don't know how to expand"
+		return 0
+	fi
 
-  # Get the starting offset of the root partition
-  PART_START=$(parted /dev/mmcblk0 -ms unit s p | grep "^${PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
-  [ "$PART_START" ] || return 1
-  # Return value will likely be error for fdisk as it fails to reload the
-  # partition table because the root fs is mounted
-  fdisk /dev/mmcblk0 <<EOF
+	# Get the starting offset of the root partition
+	PART_START=$(parted /dev/mmcblk0 -ms unit s p | grep "^${PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
+	[ "$PART_START" ] || return 1
+	# Return value will likely be error for fdisk as it fails to reload the
+	# partition table because the root fs is mounted
+	fdisk /dev/mmcblk0 <<EOF
 p
 d
 $PART_NUM
@@ -127,11 +127,11 @@ exit
 raspi_config_expand() {
 /usr/bin/env raspi-config --expand-rootfs
 if [[ $? != 0 ]]; then
-  return -1
+	return -1
 else
-  rm -f /etc/rc.local; cp -f /etc/rc.local.bak /etc/rc.local; /etc/rc.local
-  reboot
-  exit
+	rm -f /etc/rc.local; cp -f /etc/rc.local.bak /etc/rc.local; /etc/rc.local
+	reboot
+	exit
 fi
 }
 raspi_config_expand
@@ -141,15 +141,15 @@ do_expand_rootfs
 echo "ERROR: Expanding failed..."
 sleep 5
 if [[ -f /etc/rc.local.bak ]]; then
-  cp -f /etc/rc.local.bak /etc/rc.local
-  /etc/rc.local
+	cp -f /etc/rc.local.bak /etc/rc.local
+	/etc/rc.local
 fi
 exit 0
 EOF1
-    #####End no touch zone#####
-    chmod +x "$mountdir/etc/rc.local"
-    fi
-    umount "$mountdir"
+		#####End no touch zone#####
+		chmod +x "$mountdir/etc/rc.local"
+		fi
+		umount "$mountdir"
 }
 
 help() {
@@ -157,14 +157,14 @@ help() {
 	read -r -d '' help << EOM
 Usage: $0 [-adhrspvzZ] imagefile.img [newimagefile.img]
 
-  -s         Don't expand filesystem when image is booted the first time
-  -v         Be verbose
-  -r         Use advanced filesystem repair option if the normal one fails
-  -z         Compress image after shrinking with gzip
-  -Z         Compress image after shrinking with xz
-  -a         Compress image in parallel using multiple cores
-  -p         Remove logs, apt archives, dhcp leases and ssh hostkeys
-  -d         Write debug messages in a debug log file
+	-s         Don't expand filesystem when image is booted the first time
+	-v         Be verbose
+	-r         Use advanced filesystem repair option if the normal one fails
+	-z         Compress image after shrinking with gzip
+	-Z         Compress image after shrinking with xz
+	-a         Compress image in parallel using multiple cores
+	-p         Remove logs, apt archives, dhcp leases and ssh hostkeys
+	-d         Write debug messages in a debug log file
 EOM
 	echo "$help"
 	exit 1
@@ -179,18 +179,18 @@ prep=false
 ziptool=""
 
 while getopts ":adhprsvzZ" opt; do
-  case "${opt}" in
-    a) parallel=true;;
-    d) debug=true;;
-    h) help;;
-    p) prep=true;;
-    r) repair=true;;
-    s) should_skip_autoexpand=true ;;
-    v) verbose=true;;
-    z) ziptool="gzip";;
-    Z) ziptool="xz";;
-    *) help;;
-  esac
+	case "${opt}" in
+		a) parallel=true;;
+		d) debug=true;;
+		h) help;;
+		p) prep=true;;
+		r) repair=true;;
+		s) should_skip_autoexpand=true ;;
+		v) verbose=true;;
+		z) ziptool="gzip";;
+		Z) ziptool="xz";;
+		*) help;;
+	esac
 done
 shift $((OPTIND-1))
 
@@ -209,16 +209,16 @@ img="$1"
 
 #Usage checks
 if [[ -z "$img" ]]; then
-  help
+	help
 fi
 
 if [[ ! -f "$img" ]]; then
-  error $LINENO "$img is not a file..."
-  exit 2
+	error $LINENO "$img is not a file..."
+	exit 2
 fi
 if (( EUID != 0 )); then
-  error $LINENO "You need to be running as root."
-  exit 3
+	error $LINENO "You need to be running as root."
+	exit 3
 fi
 
 # set locale to POSIX(English) temporarily
@@ -245,28 +245,28 @@ fi
 
 #Check that what we need is installed
 for command in $REQUIRED_TOOLS; do
-  command -v $command >/dev/null 2>&1
-  if (( $? != 0 )); then
-    error $LINENO "$command is not installed."
-    exit 4
-  fi
+	command -v $command >/dev/null 2>&1
+	if (( $? != 0 )); then
+		error $LINENO "$command is not installed."
+		exit 4
+	fi
 done
 
 #Copy to new file if requested
 if [ -n "$2" ]; then
-  f="$2"
-  if [[ -n $ziptool && "${f##*.}" == "${ZIPEXTENSIONS[$ziptool]}" ]]; then	# remove zip extension if zip requested because zip tool will complain about extension
-    f="${f%.*}"
-  fi
-  info "Copying $1 to $f..."
-  cp --reflink=auto --sparse=always "$1" "$f"
-  if (( $? != 0 )); then
-    error $LINENO "Could not copy file..."
-    exit 5
-  fi
-  old_owner=$(stat -c %u:%g "$1")
-  chown "$old_owner" "$f"
-  img="$f"
+	f="$2"
+	if [[ -n $ziptool && "${f##*.}" == "${ZIPEXTENSIONS[$ziptool]}" ]]; then	# remove zip extension if zip requested because zip tool will complain about extension
+		f="${f%.*}"
+	fi
+	info "Copying $1 to $f..."
+	cp --reflink=auto --sparse=always "$1" "$f"
+	if (( $? != 0 )); then
+		error $LINENO "Could not copy file..."
+		exit 5
+	fi
+	old_owner=$(stat -c %u:%g "$1")
+	chown "$old_owner" "$f"
+	img="$f"
 fi
 
 # cleanup at script exit
@@ -285,17 +285,17 @@ fi
 partnum="$(echo "$parted_output" | tail -n 1 | cut -d ':' -f 1)"
 partstart="$(echo "$parted_output" | tail -n 1 | cut -d ':' -f 2 | tr -d 'B')"
 if [ -z "$(parted -s "$img" unit B print | grep "$partstart" | grep logical)" ]; then
-    parttype="primary"
+		parttype="primary"
 else
-    parttype="logical"
+		parttype="logical"
 fi
 loopback="$(losetup -f --show -o "$partstart" "$img")"
 tune2fs_output="$(tune2fs -l "$loopback")"
 rc=$?
 if (( $rc )); then
-    echo "$tune2fs_output"
-    error $LINENO "tune2fs failed. Unable to shrink this type of image"
-    exit 7
+		echo "$tune2fs_output"
+		error $LINENO "tune2fs failed. Unable to shrink this type of image"
+		exit 7
 fi
 
 currentsize="$(echo "$tune2fs_output" | grep '^Block count:' | tr -d ' ' | cut -d ':' -f 2)"
@@ -305,50 +305,50 @@ logVariables $LINENO beforesize parted_output partnum partstart parttype tune2fs
 
 #Check if we should make pi expand rootfs on next boot
 if [ "$parttype" == "logical" ]; then
-  echo "WARNING: PiShrink does not yet support autoexpanding of this type of image"
+	echo "WARNING: PiShrink does not yet support autoexpanding of this type of image"
 elif [ "$should_skip_autoexpand" = false ]; then
-  set_autoexpand
+	set_autoexpand
 else
-  echo "Skipping autoexpanding process..."
+	echo "Skipping autoexpanding process..."
 fi
 
 if [[ $prep == true ]]; then
-  info "Syspreping: Removing logs, apt archives, dhcp leases and ssh hostkeys"
-  mountdir=$(mktemp -d)
-  mount "$loopback" "$mountdir"
-  rm -rvf $mountdir/var/cache/apt/archives/* $mountdir/var/lib/dhcpcd5/* $mountdir/var/log/* $mountdir/var/tmp/* $mountdir/tmp/*
-  #check if openssh is enabled
-  if [[ -f "$mountdir/etc/systemd/system/multi-user.target.wants/ssh.service" ]]; then
-    if [[ -f "$mountdir/lib/systemd/system/regenerate_ssh_host_keys.service" ]] && [[ -d "$mountdir/etc/systemd/system/multi-user.target.wants" ]]; then
-      ln -s $mountdir/lib/systemd/system/regenerate_ssh_host_keys.service $mountdir/etc/systemd/system/multi-user.target.wants/regenerate_ssh_host_keys.service
-      info "host keys on disk remain but should regenerate on first boot."
-    else
-      #key regeneration relies on using the host to regenerate the keys
-      if ! command -v ssh-keygen &> /dev/null; then
-        info "WARNING: could not locate ssh-keygen command, keeping old keys"
-      else
-        if [ -c /dev/hwrng ]; then
-          dd if=/dev/hwrng of=/dev/urandom count=1 bs=4096 status=none
-        fi
-        rm -f $mountdir/etc/ssh/ssh_host_*_key*
-        info "regenerating ssh host keys"
-        ssh-keygen -A -f $mountdir > /dev/null
-      fi
-    fi
-  #check if dropbear is enabled
-  elif [[ -f "$mountdir/etc/init.d/dropbear" ]]; then
-    #key regeneration relies on using the host to regenerate the keys
-    if ! command -v dropbearkey &> /dev/null; then
-      info "WARNING: could not locate dropbearkey command, keeping old keys"
-    else
-      rm -f $mountdir/etc/dropbear/dropbear_*_host_key
-      info "regenerating dropbear keys"
-      dropbearkey -t rsa -f $mountdir/etc/dropbear/dropbear_rsa_host_key > /dev/null
-      dropbearkey -t ecdsa -f $mountdir/etc/dropbear/dropbear_ecdsa_host_key > /dev/null
-      dropbearkey -t ed25519 -f $mountdir/etc/dropbear/dropbear_ed25519_host_key > /dev/null 
-    fi
-  fi
-  umount "$mountdir"
+	info "Syspreping: Removing logs, apt archives, dhcp leases and ssh hostkeys"
+	mountdir=$(mktemp -d)
+	mount "$loopback" "$mountdir"
+	rm -rvf $mountdir/var/cache/apt/archives/* $mountdir/var/lib/dhcpcd5/* $mountdir/var/log/* $mountdir/var/tmp/* $mountdir/tmp/*
+	#check if openssh is enabled
+	if [[ -f "$mountdir/etc/systemd/system/multi-user.target.wants/ssh.service" ]]; then
+		if [[ -f "$mountdir/lib/systemd/system/regenerate_ssh_host_keys.service" ]] && [[ -d "$mountdir/etc/systemd/system/multi-user.target.wants" ]]; then
+			ln -s $mountdir/lib/systemd/system/regenerate_ssh_host_keys.service $mountdir/etc/systemd/system/multi-user.target.wants/regenerate_ssh_host_keys.service
+			info "host keys on disk remain but should regenerate on first boot."
+		else
+			#key regeneration relies on using the host to regenerate the keys
+			if ! command -v ssh-keygen &> /dev/null; then
+				info "WARNING: could not locate ssh-keygen command, keeping old keys"
+			else
+				if [ -c /dev/hwrng ]; then
+					dd if=/dev/hwrng of=/dev/urandom count=1 bs=4096 status=none
+				fi
+				rm -f $mountdir/etc/ssh/ssh_host_*_key*
+				info "regenerating ssh host keys"
+				ssh-keygen -A -f $mountdir > /dev/null
+			fi
+		fi
+	#check if dropbear is enabled
+	elif [[ -f "$mountdir/etc/init.d/dropbear" ]]; then
+		#key regeneration relies on using the host to regenerate the keys
+		if ! command -v dropbearkey &> /dev/null; then
+			info "WARNING: could not locate dropbearkey command, keeping old keys"
+		else
+			rm -f $mountdir/etc/dropbear/dropbear_*_host_key
+			info "regenerating dropbear keys"
+			dropbearkey -t rsa -f $mountdir/etc/dropbear/dropbear_rsa_host_key > /dev/null
+			dropbearkey -t ecdsa -f $mountdir/etc/dropbear/dropbear_ecdsa_host_key > /dev/null
+			dropbearkey -t ed25519 -f $mountdir/etc/dropbear/dropbear_ed25519_host_key > /dev/null 
+		fi
+	fi
+	umount "$mountdir"
 fi
 
 
@@ -363,18 +363,18 @@ fi
 minsize=$(cut -d ':' -f 2 <<< "$minsize" | tr -d ' ')
 logVariables $LINENO currentsize minsize
 if [[ $currentsize -eq $minsize ]]; then
-  error $LINENO "Image already shrunk to smallest size"
-  exit 11
+	error $LINENO "Image already shrunk to smallest size"
+	exit 11
 fi
 
 #Add some free space to the end of the filesystem
 extra_space=$(($currentsize - $minsize))
 logVariables $LINENO extra_space
 for space in 5000 1000 100; do
-  if [[ $extra_space -gt $space ]]; then
-    minsize=$(($minsize + $space))
-    break
-  fi
+	if [[ $extra_space -gt $space ]]; then
+		minsize=$(($minsize + $space))
+		break
+	fi
 done
 logVariables $LINENO minsize
 
@@ -383,12 +383,12 @@ info "Shrinking filesystem"
 resize2fs -p "$loopback" $minsize
 rc=$?
 if (( $rc )); then
-  error $LINENO "resize2fs failed with rc $rc"
-  mount "$loopback" "$mountdir"
-  mv "$mountdir/etc/rc.local.bak" "$mountdir/etc/rc.local"
-  umount "$mountdir"
-  losetup -d "$loopback"
-  exit 12
+	error $LINENO "resize2fs failed with rc $rc"
+	mount "$loopback" "$mountdir"
+	mv "$mountdir/etc/rc.local.bak" "$mountdir/etc/rc.local"
+	umount "$mountdir"
+	losetup -d "$loopback"
+	exit 12
 fi
 sleep 1
 
