@@ -245,7 +245,7 @@ fi
 
 #Check that what we need is installed
 for command in $REQUIRED_TOOLS; do
-	command -v $command >/dev/null 2>&1
+	command -v "$command" >/dev/null 2>&1
 	if (( $? != 0 )); then
 		error $LINENO "$command is not installed."
 		exit 4
@@ -316,11 +316,11 @@ if [[ $prep == true ]]; then
 	info "Syspreping: Removing logs, apt archives, dhcp leases and ssh hostkeys"
 	mountdir=$(mktemp -d)
 	mount "$loopback" "$mountdir"
-	rm -rvf $mountdir/var/cache/apt/archives/* $mountdir/var/lib/dhcpcd5/* $mountdir/var/log/* $mountdir/var/tmp/* $mountdir/tmp/*
+	rm -rvf "$mountdir"/var/cache/apt/archives/* "$mountdir"/var/lib/dhcpcd5/* "$mountdir"/var/log/* "$mountdir"/var/tmp/* "$mountdir"/tmp/*
 	#check if openssh is enabled
 	if [[ -f "$mountdir/etc/systemd/system/multi-user.target.wants/ssh.service" ]]; then
 		if [[ -f "$mountdir/lib/systemd/system/regenerate_ssh_host_keys.service" ]] && [[ -d "$mountdir/etc/systemd/system/multi-user.target.wants" ]]; then
-			ln -s $mountdir/lib/systemd/system/regenerate_ssh_host_keys.service $mountdir/etc/systemd/system/multi-user.target.wants/regenerate_ssh_host_keys.service
+			ln -s "$mountdir"/lib/systemd/system/regenerate_ssh_host_keys.service "$mountdir"/etc/systemd/system/multi-user.target.wants/regenerate_ssh_host_keys.service
 			info "host keys on disk remain but should regenerate on first boot."
 		else
 			#key regeneration relies on using the host to regenerate the keys
@@ -330,9 +330,9 @@ if [[ $prep == true ]]; then
 				if [ -c /dev/hwrng ]; then
 					dd if=/dev/hwrng of=/dev/urandom count=1 bs=4096 status=none
 				fi
-				rm -f $mountdir/etc/ssh/ssh_host_*_key*
+				rm -f "$mountdir"/etc/ssh/ssh_host_*_key*
 				info "regenerating ssh host keys"
-				ssh-keygen -A -f $mountdir > /dev/null
+				ssh-keygen -A -f "$mountdir" > /dev/null
 			fi
 		fi
 	#check if dropbear is enabled
@@ -341,11 +341,11 @@ if [[ $prep == true ]]; then
 		if ! command -v dropbearkey &> /dev/null; then
 			info "WARNING: could not locate dropbearkey command, keeping old keys"
 		else
-			rm -f $mountdir/etc/dropbear/dropbear_*_host_key
+			rm -f "$mountdir"/etc/dropbear/dropbear_*_host_key
 			info "regenerating dropbear keys"
-			dropbearkey -t rsa -f $mountdir/etc/dropbear/dropbear_rsa_host_key > /dev/null
-			dropbearkey -t ecdsa -f $mountdir/etc/dropbear/dropbear_ecdsa_host_key > /dev/null
-			dropbearkey -t ed25519 -f $mountdir/etc/dropbear/dropbear_ed25519_host_key > /dev/null 
+			dropbearkey -t rsa -f "$mountdir"/etc/dropbear/dropbear_rsa_host_key > /dev/null
+			dropbearkey -t ecdsa -f "$mountdir"/etc/dropbear/dropbear_ecdsa_host_key > /dev/null
+			dropbearkey -t ed25519 -f "$mountdir"/etc/dropbear/dropbear_ed25519_host_key > /dev/null 
 		fi
 	fi
 	umount "$mountdir"
@@ -431,14 +431,14 @@ fi
 #Zero out the freespace
 info "Zeroing free space"
 LOOP_DEV=$(losetup -f)
-losetup $LOOP_DEV -P $img
-zerofree ${LOOP_DEV}p2
+losetup "$LOOP_DEV" -P "$img"
+zerofree "${LOOP_DEV}"p2
 rc=$?
 if (( $rc )); then
 	error $LINENO "zerofree failed with rc $rc"
 	exit 20
 fi
-losetup -d $LOOP_DEV
+losetup -d "$LOOP_DEV"
 
 # handle compression
 if [[ -n $ziptool ]]; then
