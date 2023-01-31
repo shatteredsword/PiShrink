@@ -276,7 +276,7 @@ info "Gathering data"
 beforesize="$(du -h "$img" | cut -f -1)"
 parted_output="$(parted -ms "$img" unit B print)"
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "parted failed with rc $rc"
 	info "Possibly invalid image. Run 'parted $img unit B print' manually to investigate"
 	exit 6
@@ -291,7 +291,7 @@ fi
 loopback="$(losetup -f --show -o "$partstart" "$img")"
 tune2fs_output="$(tune2fs -l "$loopback")"
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 		echo "$tune2fs_output"
 		error $LINENO "tune2fs failed. Unable to shrink this type of image"
 		exit 7
@@ -381,7 +381,7 @@ logVariables $LINENO minsize
 info "Shrinking filesystem"
 resize2fs -p "$loopback" $minsize
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "resize2fs failed with rc $rc"
 	mount "$loopback" "$mountdir"
 	mv "$mountdir/etc/rc.local.bak" "$mountdir/etc/rc.local"
@@ -397,14 +397,14 @@ newpartend=$((partstart + partnewsize))
 logVariables $LINENO partnewsize newpartend
 parted -s -a minimal "$img" rm "$partnum"
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "parted failed with rc $rc"
 	exit 13
 fi
 
 parted -s "$img" unit B mkpart "$parttype" "$partstart" "$newpartend"
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "parted failed with rc $rc"
 	exit 14
 fi
@@ -413,7 +413,7 @@ fi
 info "Shrinking image"
 endresult=$(parted -ms "$img" unit B print free)
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "parted failed with rc $rc"
 	exit 15
 fi
@@ -422,7 +422,7 @@ endresult=$(tail -1 <<< "$endresult" | cut -d ':' -f 2 | tr -d 'B')
 logVariables $LINENO endresult
 truncate -s "$endresult" "$img"
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "trunate failed with rc $rc"
 	exit 16
 fi
@@ -433,7 +433,7 @@ LOOP_DEV=$(losetup -f)
 losetup "$LOOP_DEV" -P "$img"
 zerofree "${LOOP_DEV}"p2
 rc=$?
-if (( $rc )); then
+if (( rc )); then
 	error $LINENO "zerofree failed with rc $rc"
 	exit 20
 fi
