@@ -283,7 +283,7 @@ if (( $rc )); then
 fi
 partnum="$(echo "$parted_output" | tail -n 1 | cut -d ':' -f 1)"
 partstart="$(echo "$parted_output" | tail -n 1 | cut -d ':' -f 2 | tr -d 'B')"
-if [ -z "$(parted -s "$img" unit B print | grep "$partstart" | grep logical)" ]; then
+if ! parted -s "$img" unit B print | grep "$partstart" | grep -q logical; then
 		parttype="primary"
 else
 		parttype="logical"
@@ -367,11 +367,11 @@ if [[ $currentsize -eq $minsize ]]; then
 fi
 
 #Add some free space to the end of the filesystem
-extra_space=$(($currentsize - $minsize))
+extra_space=$((currentsize - minsize))
 logVariables $LINENO extra_space
 for space in 5000 1000 100; do
 	if [[ $extra_space -gt $space ]]; then
-		minsize=$(($minsize + $space))
+		minsize=$((minsize + space))
 		break
 	fi
 done
@@ -392,8 +392,8 @@ fi
 sleep 1
 
 #Shrink partition
-partnewsize=$(($minsize * $blocksize))
-newpartend=$(($partstart + $partnewsize))
+partnewsize=$((minsize * blocksize))
+newpartend=$((partstart + partnewsize))
 logVariables $LINENO partnewsize newpartend
 parted -s -a minimal "$img" rm "$partnum"
 rc=$?
