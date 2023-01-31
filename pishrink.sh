@@ -27,7 +27,8 @@ function cleanup() {
 		losetup -d "$loopback"
 	fi
 	if [ "$debug" = true ]; then
-		local old_owner=$(stat -c %u:%g "$src")
+		local old_owner
+		old_owner=$(stat -c %u:%g "$src")
 		chown "$old_owner" "$LOGFILE"
 	fi
 
@@ -231,7 +232,7 @@ export LANG=POSIX
 
 # check selected compression tool is supported and installed
 if [[ -n $ziptool ]]; then
-	if [[ ! " ${ZIPTOOLS[@]} " =~ $ziptool ]]; then
+	if [[ ! " ${ZIPTOOLS[*]} " =~ $ziptool ]]; then
 		error $LINENO "$ziptool is an unsupported ziptool."
 		exit 17
 	else
@@ -245,8 +246,7 @@ fi
 
 #Check that what we need is installed
 for command in $REQUIRED_TOOLS; do
-	command -v "$command" >/dev/null 2>&1
-	if (( $? != 0 )); then
+	if ! command -v "$command" >/dev/null 2>&1; then
 		error $LINENO "$command is not installed."
 		exit 4
 	fi
@@ -259,8 +259,7 @@ if [ -n "$2" ]; then
 		f="${f%.*}"
 	fi
 	info "Copying $1 to $f..."
-	cp --reflink=auto --sparse=always "$1" "$f"
-	if (( $? != 0 )); then
+	if ! cp --reflink=auto --sparse=always "$1" "$f"; then
 		error $LINENO "Could not copy file..."
 		exit 5
 	fi
@@ -274,7 +273,7 @@ trap cleanup EXIT
 
 #Gather info
 info "Gathering data"
-beforesize="$(ls -lh "$img" | cut -d ' ' -f 5)"
+beforesize="$(du -h "$img" | cut -f -1)"
 parted_output="$(parted -ms "$img" unit B print)"
 rc=$?
 if (( $rc )); then
@@ -467,8 +466,7 @@ if [[ -n $ziptool ]]; then
 	fi
 	img=$img.${ZIPEXTENSIONS[$ziptool]}
 fi
-
-aftersize=$(ls -lh "$img" | cut -d ' ' -f 5)
+aftersize="$(du -h "$img" | cut -f -1)"
 logVariables $LINENO aftersize
 
 info "Shrunk $img from $beforesize to $aftersize"
