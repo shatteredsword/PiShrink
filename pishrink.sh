@@ -321,13 +321,14 @@ if [[ $prep == true ]]; then
 	mountdir=$(mktemp -d)
 	mount "$loopback" "$mountdir"
 	rm -rvf "$mountdir"/var/cache/apt/archives/* "$mountdir"/var/lib/dhcpcd5/* "$mountdir"/var/tmp/* "$mountdir"/tmp/*
+
 	info "deleting old log files"
 	find "$mountdir"/var/log -type f \( -name "*.[0-9]" -o -name "*.gz" -o -name "*.prev" -o -name "*.prior" -o -name "*.old" -o -name "*.bak" \) -print -exec rm {} \;
 	info "truncating log files"
 	find "$mountdir"/var/log -type f \( -name "*log" -o -name "btmp" -o -name "debug" -o -name "messages" -o -name "wtmp" \) -print -exec truncate --size=0 {} \;
 	#check if openssh is enabled
-	if [[ -f "$mountdir/etc/systemd/system/multi-user.target.wants/ssh.service" ]]; then
-		if [[ -f "$mountdir/lib/systemd/system/regenerate_ssh_host_keys.service" ]] && [[ -d "$mountdir/etc/systemd/system/multi-user.target.wants" ]]; then
+	if [[ -f "$mountdir"/lib/systemd/system/ssh.service ]]; then
+		if [[ -f "$mountdir"/lib/systemd/system/regenerate_ssh_host_keys.service ]] && [[ -d "$mountdir"/etc/systemd/system/multi-user.target.wants ]]; then
 			ln -s "$mountdir"/lib/systemd/system/regenerate_ssh_host_keys.service "$mountdir"/etc/systemd/system/multi-user.target.wants/regenerate_ssh_host_keys.service
 			info "host keys on disk remain but should regenerate on first boot."
 		else
@@ -355,6 +356,8 @@ if [[ $prep == true ]]; then
 			dropbearkey -t ecdsa -f "$mountdir"/etc/dropbear/dropbear_ecdsa_host_key > /dev/null
 			dropbearkey -t ed25519 -f "$mountdir"/etc/dropbear/dropbear_ed25519_host_key > /dev/null 
 		fi
+	else
+		info "keeping ssh keys"
 	fi
 	umount "$mountdir"
 fi
